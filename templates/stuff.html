@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CHW | AVM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            height: 100%; /* Full height */
+            margin: 0; /* No margin */
+            display: flex; /* Using Flexbox */
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+            background-color: black; /* Background color black */
+            font-family: 'Poppins', sans-serif; /* Font from Titan theme */
+            position: relative; /* For positioning the language selector */
+        }
+        iframe {
+            border: 0px #ffffff none; /* No border */
+            transition: transform 2s ease; /* Smooth transition for transform */
+            position: fixed; /* Ensures that z-index can be effectively used */
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            z-index: 1; /* Lower z-index so that the box can appear above */
+        }
+        #macBox {
+            width: 600px;
+            height: 500px;
+            background-color: #1d1d1d; /* Dark grey background */
+            border-radius: 8px; /* Rounded corners */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Subtle shadow */
+            position: fixed;
+            left: 20px;
+            top: 50%;
+            transform: translateX(40%) translateY(-50%) scale(0); /* Start scaled down to 0 */
+            transition: transform 2s ease, opacity 2s ease; /* Smooth transitions for transform and opacity */
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 16px;
+            z-index: 2; /* Higher z-index to ensure it appears over the iframe */
+            opacity: 0; /* Start invisible, will fade in */
+        }
+        .input-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px; /* Space below input container */
+        }
+        .input-area {
+            position: fixed;
+            bottom: 50px; /* Position at the bottom */
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 4; /* Above all */
+            text-align: center; /* Center the status text */
+        }
+        input[type="text"] {
+            border: 2px solid #555;
+            background-color: transparent;
+            color: white;
+            border-radius: 5px;
+            padding: 10px 20px;
+            width: 300px;
+            outline: none;
+            transition: border-color 0.3s;
+            margin: 0 10px; /* Added margin for spacing */
+            font-family: 'Poppins', sans-serif; /* Apply font to input */
+        }
+        input[type="text"]:focus {
+            border-color: #aaa; /* Highlight when focused */
+        }
+        button.submit-button {
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-family: 'Poppins', sans-serif; /* Apply font to button */
+        }
+        button.submit-button:hover {
+            background-color: #444; /* Darken on hover */
+        }
+        .language-selector {
+            margin-right: 10px; /* Space between the dropdown and the input box */
+        }
+        .language-selector select {
+            padding: 10px;
+            border-radius: 5px;
+            border: 2px solid #555;
+            background-color: #333;
+            color: white;
+            cursor: pointer;
+            outline: none;
+            transition: border-color 0.3s;
+            font-family: 'Poppins', sans-serif; /* Apply font to select */
+        }
+        .language-selector select:focus {
+            border-color: #aaa; /* Highlight when focused */
+        }
+        .status {
+            color: white;
+            font-family: 'Poppins', sans-serif; /* Apply font to status */
+            font-size: 12px; /* Smaller text for status */
+            margin-top: 10px; /* Space above status text */
+        }
+    </style>
+</head>
+<body>
+    <div class="input-area">
+        <div class="input-container">
+            <div class="language-selector">
+                <select id="languageSelect" onchange="updateLanguage()">
+                    <option value="en">English</option>
+                    <option value="es">Spanish</option>
+                    <option value="hi">Hindi</option>
+                    <option value="te">Telugu</option>
+                </select>
+            </div>
+            <input style='color: white;' type="text" id="inputText" placeholder="Enter your text here">
+            <button class="submit-button" onclick="sendData()">Submit</button>
+        </div>
+        <div class="status" id="status">ChatCHW Ready, Click Orb to Begin</div>
+    </div>
+    <div id="macBox">This is a Mac-style box.</div>
+    <iframe id="myIframe" src="http://localhost:1234/" name="myiFrame" scrolling="no" frameborder="1" marginheight="0px" marginwidth="0px" height="100%" width="1100px" allowfullscreen></iframe>
+    <script>
+        const translations = {
+            en: {
+                submit: "Submit",
+                ready: "ChatCHW Ready, Click Orb to Begin",
+                running: "ChatCHW Running",
+                placeholder: "Enter your text here"
+            },
+            es: {
+                submit: "Enviar",
+                ready: "ChatCHW Listo, Haga Clic en el Orbe",
+                running: "ChatCHW En Funcionamiento",
+                placeholder: "Introduzca su texto aquí"
+            },
+            hi: {
+                submit: "प्रस्तुत करें",
+                ready: "ChatCHW तैयार, शुरू करने के लिए ऑर्ब पर क्लिक करें",
+                running: "ChatCHW चल रहा है",
+                placeholder: "यहां अपना पाठ दर्ज करें"
+            },
+            te: {
+                submit: "సమర్పించు",
+                ready: "ChatCHW సిద్ధంగా ఉంది, ప్రారంభించడానికి ఆర్బ్ క్లిక్ చేయండి",
+                running: "ChatCHW నడుస్తోంది",
+                placeholder: "మీ టెక్స్ట్‌ను ఇక్కడ నమోదు చేయండి"
+            }
+        };
+
+        function updateLanguage() {
+            const selectedLanguage = document.getElementById('languageSelect').value;
+            document.querySelector('.submit-button').innerText = translations[selectedLanguage].submit;
+            document.getElementById('status').innerText = translations[selectedLanguage].ready;
+            document.getElementById('inputText').placeholder = translations[selectedLanguage].placeholder;
+        }
+
+        let spinnerInterval;
+
+        function sendData() {
+            const inputElement = document.getElementById('inputText');
+            const inputValue = inputElement.value.trim().substring(0, 100); // Get the value from the input and trim whitespace, cut to 100 chars
+            const selectedLanguage = document.getElementById('languageSelect').value;
+
+            if (inputValue === "") {
+                alert("Please enter some text before submitting."); // Alert if the input is empty
+                return; // Do not proceed with the submission
+            }
+
+            // Create an AJAX request to send data to the server
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", "/submit", true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    clearInterval(spinnerInterval); // Stop the spinner animation
+                    if (xhr.status === 200) {
+                        console.log('Data sent successfully');
+                        handleServerResponse(JSON.parse(xhr.responseText));
+                    }
+                }
+            };
+            const data = JSON.stringify({ "text": inputValue, "language": selectedLanguage });
+            xhr.send(data);
+
+            // Update status to running
+            document.getElementById('status').innerText = translations[selectedLanguage].running + " -";
+            startSpinner(translations[selectedLanguage].running);
+        }
+
+        function handleServerResponse(response) {
+            const selectedLanguage = document.getElementById('languageSelect').value;
+            document.getElementById('status').innerText = translations[selectedLanguage].ready;
+            if (response.action === 'click_center') {
+                // Reload the page
+                location.reload();
+            }
+        }
+
+        function startSpinner(runningText) {
+            const spinnerChars = ['—', '\\', '|', '/'];
+            let i = 0;
+            spinnerInterval = setInterval(() => {
+                document.getElementById('status').innerText = `${runningText} ${spinnerChars[i]}`;
+                i = (i + 1) % spinnerChars.length;
+            }, 200); // Change every 200ms
+        }
+
+        window.addEventListener('load', function() {
+            if (performance.navigation.type === performance.navigation.TYPE_RELOAD) {
+                // Wait for a bit to ensure everything is loaded
+                setTimeout(function() {
+                    // Get the dimensions of the window
+                    const width = window.innerWidth;
+                    const height = window.innerHeight;
+
+                    // Calculate the center of the window
+                    const centerX = width / 2;
+                    const centerY = height / 2;
+
+                    // Create an invisible element at the center to click
+                    const clickElement = document.createElement('div');
+                    clickElement.style.position = 'absolute';
+                    clickElement.style.left = `${centerX}px`;
+                    clickElement.style.top = `${centerY}px`;
+                    clickElement.style.width = '1px';
+                    clickElement.style.height = '1px';
+                    clickElement.style.zIndex = 10000;
+                    clickElement.style.cursor = 'pointer'; // Ensure it can be clicked
+                    document.body.appendChild(clickElement);
+
+                    // Simulate the click
+                    clickElement.click();
+
+                    // Remove the element after clicking
+                    document.body.removeChild(clickElement);
+                }, 100); // Delay to ensure the page is fully loaded
+            }
+        });
+    </script>
+</body>
+</html>

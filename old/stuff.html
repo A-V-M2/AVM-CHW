@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interactive Sound Wave Logo</title>
+<style>
+  body, html {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    font-family: 'Roboto', sans-serif;
+    background-color: black;
+    color: white;
+  }
+  #container {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  #inputText {
+    padding: 10px;
+    width: 300px;
+    border: 1px solid lightblue;
+    background: transparent;
+    color: white;
+    font-size: 16px;
+    outline: none;
+  }
+  #submitButton {
+    padding: 10px 20px;
+    background-color: lightblue;
+    border: none;
+    color: black;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div id="audioVisualizer"></div>
+<div id="container">
+  <input type="text" id="inputText" placeholder="Type something...">
+  <button id="submitButton">Speak</button>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
+
+  const soundWaveMaterial = new THREE.LineBasicMaterial({ color: 0xDDEEFF });
+  const soundWaveGeometry = new THREE.BufferGeometry();
+  const soundWavePoints = [];
+  for (let i = 0; i < 30; i++) {
+    soundWavePoints.push(new THREE.Vector3(i - 15, 0, 0));
+  }
+  soundWaveGeometry.setFromPoints(soundWavePoints);
+  const soundWaveLine = new THREE.Line(soundWaveGeometry, soundWaveMaterial);
+  scene.add(soundWaveLine);
+
+  const particleGeometry = new THREE.BufferGeometry();
+  const particleCount = 500;
+  const posArray = new Float32Array(particleCount * 3);
+  for (let i = 0; i < particleCount * 3; i++) {
+    posArray[i] = (Math.random() - 0.5) * 500;
+  }
+  particleGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+  const particleMaterial = new THREE.PointsMaterial({
+    size: 0.5,
+    color: 0xFFFFFF,
+    sizeAttenuation: true
+  });
+  const particlesMesh = new THREE.Points(particleGeometry, particleMaterial);
+  scene.add(particlesMesh);
+
+  camera.position.z = 50;
+
+  function animate() {
+    requestAnimationFrame(animate);
+    particlesMesh.rotation.y += 0.0005;
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  const inputText = document.getElementById('inputText');
+  const submitButton = document.getElementById('submitButton');
+
+  function speakText() {
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+    }
+    const text = inputText.value;
+    const speech = new SpeechSynthesisUtterance(text);
+    window.speechSynthesis.speak(speech);
+    speech.onstart = () => {
+      soundWaveLine.scale.set(1, 2, 1);
+      particlesMesh.scale.set(1.1, 1.1, 1.1);
+    };
+    speech.onend = () => {
+      soundWaveLine.scale.set(1, 1, 1);
+      particlesMesh.scale.set(1, 1, 1);
+    };
+  }
+
+  submitButton.addEventListener('click', speakText);
+
+  // Trigger speech when enter is pressed
+  inputText.addEventListener('keypress', function(event) {
+    if (event.key === "Enter") {
+      speakText();
+      event.preventDefault();
+    }
+  });
+</script>
+</body>
+</html>

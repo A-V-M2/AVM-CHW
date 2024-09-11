@@ -1,0 +1,7 @@
+python -m venv myenv
+virtualenv venv
+venv\Scripts\activate
+
+OR 
+python -m venv myenv
+myenv\Scripts\activate

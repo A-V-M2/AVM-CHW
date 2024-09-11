@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Questions and Answers</title>
+    <style>
+        #refresh-button {
+            margin-left: 20px;
+            font-size: 16px;
+            padding: 5px 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Questions and Answers from MongoDB
+        <button id="refresh-button" onclick="window.location.reload();">Refresh Data</button>
+    </h1>
+    <ul>
+        {% for question in questions %}
+        <li><strong>Prompt:</strong> {{ question.prompt }} <strong>Response:</strong> {{ question.response }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
